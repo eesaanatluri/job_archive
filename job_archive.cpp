@@ -324,12 +324,14 @@ void do_processFiles( const int& id, const string& targDestPath1, Queue<SlurmJob
 
         // A4-verfiy user dir path exists, if not then create
         // todo replace with new getCurYearMonth()
-        string year = getCurYear();
-        string month = getCurMonth();
+        std::time_t t = std::time(0);
+        std::tm* now = std::localtime(&t);
+
+	char date_string[8];
+	strftime(date_string, sizeof date_string, "%Y%m%d", now);
+
         string targDestPathUser = targDestPath1 + "/" + parse.user;
-        string targDestPathUserYear = targDestPath1 + "/" + parse.user + "/" + year;
-        string targDestPathUserYearMonth = targDestPath1 + "/" + parse.user + "/" + year + "/" + month;
-        string targDestPathFull = targDestPath1 + "/" + parse.user + "/" + year + "/" + month;
+        string targDestPathFull = targDestPath1 + "/" + parse.user + "/" + date_string;
 
         // if user dir does not exist then create dir
         if (! doesDirExist(targDestPathUser)) {
@@ -355,25 +357,12 @@ void do_processFiles( const int& id, const string& targDestPath1, Queue<SlurmJob
             }
         }
 
-        // if user/year dir does not exist then create dir
-        if (! doesDirExist(targDestPathUserYear)) {
-            if (debug > 2) cout << "INFO: creating user/year - dir does not exist: " << targDestPathUserYear << endl;
-            mkDirectory(targDestPathUserYear);
-            if (! doesDirExist(targDestPathUserYear)) {
-                sprintf( prtBuf, "ERROR:%d user/year dir does not exist: %s -%s", id, targDestPathUserYear.c_str(), jobdir->getString().c_str());
-                logger->LOG(prtBuf);
-                saveJobFiles( prtBuf, jobdir, logger );
-                delete jobdir;
-                continue;
-            }
-        }
-
-        // if user/year/month dir does not exist then create dir
-        if (! doesDirExist(targDestPathUserYearMonth)) {
-            if (debug > 2) cout << "INFO: creating user/year/month - dir does not exist: " << targDestPathUserYearMonth << endl;
-            mkDirectory(targDestPathUserYearMonth);
-            if (! doesDirExist(targDestPathUserYearMonth)) {
-                sprintf( prtBuf, "ERROR:%d user year/month/dir does not exist: %s -%s", id, targDestPathUserYearMonth.c_str(), jobdir->getString().c_str());
+        // if user/yearmonthday dir does not exist then create dir
+        if (! doesDirExist(targDestPathFull)) {
+            if (debug > 2) cout << "INFO: creating user/yearmonthday - dir does not exist: " << targDestPathFull << endl;
+            mkDirectory(targDestPathFull);
+            if (! doesDirExist(targDestPathFull)) {
+                sprintf( prtBuf, "ERROR:%d user yearmonthday dir does not exist: %s -%s", id, targDestPathFull.c_str(), jobdir->getString().c_str());
                 logger->LOG(prtBuf);
                 saveJobFiles( prtBuf, jobdir, logger );
                 delete jobdir;
@@ -382,8 +371,8 @@ void do_processFiles( const int& id, const string& targDestPath1, Queue<SlurmJob
         }
 
         // base filename
-        string targFileBase = to_string(static_cast<long long>(jobdir->jobId)) + (parse.slurm_job_name.size() == 0 ? "" : string("-") + parse.slurm_job_name);
-        string destScriptFile = targDestPathFull + "/" + targFileBase + ".sh";
+        string targFileBase = to_string(static_cast<long long>(jobdir->jobId));
+        string destScriptFile = targDestPathFull + "/" + targFileBase + ".savescript";
         string destEnvFile = targDestPathFull + "/" + targFileBase + ".env";
 
         // A5-now save env file
@@ -511,8 +500,8 @@ int main( int argc, char **argv ) {
         std::cerr << "**** debug = " << debug << " ****" << std::endl;
     }
 
-    string srcSpoolHashPath = "/var/spool/slurm/hash.";
-    string targDestPath = "/var/slurm/jobscript_archive";
+    string srcSpoolHashPath = "/tmp/hash.";
+    string targDestPath = "/home/centos/supremm/jobs_dir";
     Queue<SlurmJobDirectory> queue;
 
     int QUE_THD_SIZE=2;
