@@ -327,7 +327,7 @@ void do_processFiles( const int& id, const string& targDestPath1, Queue<SlurmJob
         std::time_t t = std::time(0);
         std::tm* now = std::localtime(&t);
 
-	char date_string[8];
+	char date_string[10];
 	strftime(date_string, sizeof date_string, "%Y%m%d", now);
 
         string targDestPathUser = targDestPath1 + "/" + parse.user;
