@@ -500,7 +500,7 @@ int main( int argc, char **argv ) {
         std::cerr << "**** debug = " << debug << " ****" << std::endl;
     }
 
-    string srcSpoolHashPath = "/tmp/hash.";
+    string srcSpoolHashPath = "/var/spool/slurm/ctld/hash.";
     string targDestPath = "/home/centos/supremm/jobs_dir";
     Queue<SlurmJobDirectory> queue;
 
