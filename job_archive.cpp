@@ -20,6 +20,7 @@ g++ job_archive.cpp -o job_archive -std=c++0x -lpthread
 #include <algorithm>
 #include <signal.h>
 #include <cctype>
+#include <getopt.h>
 using namespace std;
 
 #include "HelperFn.h"
@@ -498,21 +499,70 @@ int main( int argc, char **argv ) {
     sprintf(prtBuf, "main begin - for help: sudo kill -1 %ld", getpid());
     logger.LOG(prtBuf);
 
-    if (argc == 2 && (strcmp(argv[1],"-d") == 0 || strcmp(argv[1],"-d1") == 0)) {
-        debug = 1;
-        std::cerr << "**** debug = " << debug << " ****" << std::endl;
-    }
-    if (argc == 2 && strcmp(argv[1],"-d2") == 0) {
-        debug = 2;
-        std::cerr << "**** debug = " << debug << " ****" << std::endl;
-    }
-    if (argc == 2 && strcmp(argv[1],"-d3") == 0) {
-        debug = 3;
-        std::cerr << "**** debug = " << debug << " ****" << std::endl;
+    int c,d;
+    string h,s,t,srcSpoolHashPath,targDestPath;
+
+    while (1)
+    {
+        int option_index = 0;
+        static struct option long_options[] =
+        {
+            {"source", required_argument, NULL,  's' },
+            {"target", required_argument, NULL,  't' },
+            {"debug",  optional_argument, NULL,  'd' },
+            {"help",   optional_argument, NULL,  'h' },
+            {NULL, 0, NULL, 0}
+        };
+
+        c = getopt_long(argc, argv, "-:h:s:t:d:", long_options, &option_index);
+        if (c == -1)
+             break;
+
+        switch (c)
+        {
+          case 'h':
+            printf("\n Usage: %s -s <source-dir> -t <target-dir>\n", argv[0]);
+            break;
+
+          case 's':
+            srcSpoolHashPath = optarg;
+            break;
+
+          case 't':
+            targDestPath = optarg;
+            break;
+
+          case 'd':
+            if ( strcmp(optarg,"1") == 0) {
+                debug = 1;
+                std::cerr << "**** debug = " << debug << " ****" << std::endl;
+            }
+            if ( strcmp(optarg,"2") == 0) {
+                debug = 2;
+                std::cerr << "**** debug = " << debug << " ****" << std::endl;
+            }
+            if ( strcmp(optarg,"3") == 0) {
+                debug = 3;
+                std::cerr << "**** debug = " << debug << " ****" << std::endl;
+            }
+            break;
+
+          case '?':
+            printf("Unknown option %c\n", optopt);
+            break;
+
+          case ':':
+            printf("Missing option for %c\n", optopt);
+            break;
+
+          default:
+            printf("\n For help: %s -h \n", argv[0]);
+         }
     }
 
-    string srcSpoolHashPath = "/var/spool/slurm/hash.";
-    string targDestPath = "/var/slurm/jobscript_archive";
+//    string srcSpoolHashPath = "/var/spool/slurm/ctld/hash.";
+//    string targDestPath = "/home/centos/supremm/jobs_dir";
+
     Queue<SlurmJobDirectory> queue;
 
     int QUE_THD_SIZE=2;
